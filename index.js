@@ -71,6 +71,8 @@ class Module {
       });
 
       client.on('message', (topic, message) => {
+        console.log('MQTT Local', 'Received', topic, message.toString());
+
         var pattern1 = new UrlPattern(parent.constructTopic('status/request(/:id)'));
 
         if(pattern1.match(topic)) {
@@ -82,9 +84,11 @@ class Module {
 
           var pubTopic = 'status/response' + (params.id !== undefined ? '/' + params.id : '');
 
+          pubTopic = parent.constructTopic(pubTopic);
+
           console.log('MQTT Local', 'Publishing Status');
 
-          client.publish(parent.constructTopic(pubTopic), JSON.stringify(status));
+          client.publish(pubTopic, JSON.stringify(status));
         }
 
         parent.eventBus.emit('message', topic, message);
@@ -127,8 +131,12 @@ class Module {
     });
   }
 
-  publish(topic, message) {
-    this.client.publish(this.constructTopic(topic), message);
+  publish(topic, message, unfiltered) {
+    if(unfiltered === undefined || !unfiltered) {
+      topic = this.constructTopic(topic);
+    }
+
+    this.client.publish(topic, message);
   }
 }
 
