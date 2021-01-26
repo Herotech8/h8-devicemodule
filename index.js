@@ -112,23 +112,23 @@ class Module {
       if(pattern.match(topic)) {
         var params = pattern.match(topic);
 
-        var response = callback(message);
+        callback(message).then((responseMessage) => {
+          var responseTopic = this.constructTopic(name + '/response') + (params.id !== undefined ? '/' + params.id : '');
 
-        var responseTopic = this.constructTopic(name + '/response') + (params.id !== undefined ? '/' + params.id : '');
+          if(responseMessage.constructor == {}.constructor) {
+            responseMessage = JSON.stringify(responseMessage);
+          }
 
-        var responseMessage = response;
-
-        if(responseMessage.constructor == {}.constructor) {
-          responseMessage = JSON.stringify(responseMessage);
-        }
-
-        this.client.publish(responseTopic, responseMessage);
+          this.client.publish(responseTopic, responseMessage);
+        }).catch((err) => {
+          console.error('Error in service', err);
+        });
       }
     });
   }
 
   publish(topic, message) {
-    this.client.publish(topic, message);
+    this.client.publish(this.constructTopic(topic), message);
   }
 }
 
