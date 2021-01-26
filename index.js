@@ -126,6 +126,10 @@ class Module {
       }
     });
   }
+
+  publish(topic, message) {
+    this.client.publish(topic, message);
+  }
 }
 
 module.exports = {
