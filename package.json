@@ -1,0 +1,23 @@
+{
+  "name": "h8-devicemodule",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Herotech8/h8-devicemodule.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Herotech8/h8-devicemodule/issues"
+  },
+  "homepage": "https://github.com/Herotech8/h8-devicemodule#readme",
+  "dependencies": {
+    "mqtt": "^4.2.6",
+    "url-pattern": "^1.0.3"
+  }
+}
