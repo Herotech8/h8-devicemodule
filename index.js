@@ -52,7 +52,25 @@ class Module {
     var parent = this;
 
     return new Promise((resolve, reject) => {
-      parent.startedAt = new Date().getTime();
+      parent.startedAt = null;
+
+      var startedAtCounter = 0, startedAtOffset = 0;
+
+      var startedAtInterval = setInterval(() => {
+        startedAtCounter += 1;
+        startedAtOffset += 500;
+
+        if(new Date().getTime() > 1609459200000) {
+          parent.startedAt = (new Date().getTime() - startedAtOffset);
+          clearInterval(startedAtInterval);
+          console.log('Device Module', 'Timestamp Obtained', startedAtCounter, startedAtOffset);
+        } else {
+          if(startedAtCounter >= 10) {
+            clearInterval(startedAtInterval);
+          }
+        }
+      }, 500);
+
 
       var client = mqtt.connect('mqtt://localhost');
 
@@ -73,16 +91,16 @@ class Module {
       client.on('message', (topic, message) => {
         console.log('MQTT Local', 'Received', topic, message.toString());
 
-        var pattern1 = new UrlPattern(parent.constructTopic('status/request(/:id)'));
+        var pattern1 = new UrlPattern(parent.constructTopic('state/request(/:id)'));
 
         if(pattern1.match(topic)) {
           var params = pattern1.match(topic);
 
           var status = parent.statusCallback({
-            uptime: (new Date().getTime() - parent.startedAt)
+            uptime: (parent.startedAt !== null ? (new Date().getTime() - parent.startedAt) : null)
           });
 
-          var pubTopic = 'status/response' + (params.id !== undefined ? '/' + params.id : '');
+          var pubTopic = 'state/response' + (params.id !== undefined ? '/' + params.id : '');
 
           pubTopic = parent.constructTopic(pubTopic);
 
