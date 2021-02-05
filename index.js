@@ -89,7 +89,7 @@ class Module {
       });
 
       client.on('message', (topic, message) => {
-        console.log('MQTT Local', 'Received', topic, message.toString());
+        //console.log('MQTT Local', 'Received', topic, message.toString());
 
         var pattern1 = new UrlPattern(parent.constructTopic('state/request(/:id)'));
 
