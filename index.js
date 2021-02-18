@@ -95,18 +95,22 @@ class Module {
 
         if(pattern1.match(topic)) {
           var params = pattern1.match(topic);
+          
+          var suffix = 'response' + (params.id !== undefined ? '/' + params.id : '');
+          
+          parent.publishState(suffix);
+          
+//           var status = parent.statusCallback({
+//             uptime: (parent.startedAt !== null ? (new Date().getTime() - parent.startedAt) : null)
+//           });
 
-          var status = parent.statusCallback({
-            uptime: (parent.startedAt !== null ? (new Date().getTime() - parent.startedAt) : null)
-          });
+//           var pubTopic = 'state/response' + (params.id !== undefined ? '/' + params.id : '');
 
-          var pubTopic = 'state/response' + (params.id !== undefined ? '/' + params.id : '');
+//           pubTopic = parent.constructTopic(pubTopic);
 
-          pubTopic = parent.constructTopic(pubTopic);
+//           console.log('MQTT Local', 'Publishing Status');
 
-          console.log('MQTT Local', 'Publishing Status');
-
-          client.publish(pubTopic, JSON.stringify(status));
+//           client.publish(pubTopic, JSON.stringify(status));
         }
 
         parent.eventBus.emit('message', topic, message);
@@ -121,6 +125,10 @@ class Module {
   }
 
   onStatus(callback) {
+    this.statusCallback = callback;
+  }
+  
+  onState(callback) {
     this.statusCallback = callback;
   }
 
@@ -155,6 +163,24 @@ class Module {
     }
 
     this.client.publish(topic, message);
+  }
+  
+  publishState(suffix) {
+    var status = this.statusCallback({
+      uptime: (this.startedAt !== null ? (new Date().getTime() - this.startedAt) : null)
+    });
+
+    var pubTopic = 'state';
+    
+    if(suffix !== undefined) {
+      pubTopic += '/' + suffix
+    }
+    
+    pubTopic = this.constructTopic(pubTopic);
+
+    console.log('MQTT Local', 'Publishing Status');
+
+    this.client.publish(pubTopic, JSON.stringify(status));
   }
 }
 
