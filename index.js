@@ -216,7 +216,7 @@ class Module {
           console.error('[MODULE]', '[VARIABLE]', '[GET]', 'Service Error', err);
         });
       } else if(new UrlPattern(setPattern).match(topic)) {
-        console.log('[MODULE]', '[VARIABLE]', '[SET]', 'New Request', message);
+        console.log('[MODULE]', '[VARIABLE]', '[SET]', 'New Request', message.toString());
 
         message = message.toString();
 
