@@ -182,6 +182,76 @@ class Module {
 
     this.client.publish(pubTopic, JSON.stringify(status));
   }
+  
+    variable(name, getCb, setCb) {
+    console.log('[MODULE]', '[VARIABLE]', 'Setup', name);
+
+    var publish = this.hardwareType + '/' + this.serialNumber + '/' + this.prefix + '/' + name,
+        getPattern = this.hardwareType + '/:serialNumber/' + this.prefix + '/' + name + '/get',
+        setPattern = this.hardwareType + '/:serialNumber/' + this.prefix + '/' + name + '/set';
+
+    if(name === null) {
+      publish = this.hardwareType + '/' + this.serialNumber + '/' + this.prefix;
+      getPattern = this.hardwareType + '/:serialNumber/' + this.prefix + '/get';
+      setPattern = this.hardwareType + '/:serialNumber/' + this.prefix + '/set';
+    }
+
+    this.client.on('message', (topic, message) => {
+      if(new UrlPattern(getPattern).match(topic)) {
+        console.log('[MODULE]', '[VARIABLE]', '[GET]', 'New Request');
+
+        new Promise(getCb).then((response) => {
+          try {
+            if(response.constructor == [].constructor || response.constructor == {}.constructor) {
+              response = JSON.stringify(response);
+            }
+          } catch(err) {
+            console.error('[MODULE]', '[VARIABLE]', '[GET]', 'Request Invalid JSON');
+          }
+
+          console.error('[MODULE]', '[VARIABLE]', '[GET]', 'Service Resolved');
+
+          this.client.publish(publish, '' + response);
+        }).catch((err) => {
+          console.error('[MODULE]', '[VARIABLE]', '[GET]', 'Service Error', err);
+        });
+      } else if(new UrlPattern(setPattern).match(topic)) {
+        console.log('[MODULE]', '[VARIABLE]', '[SET]', 'New Request', message);
+
+        message = message.toString();
+
+        try {
+          var json = JSON.parse(message);
+
+          if(json.constructor == [].constructor || json.constructor == {}.constructor) {
+            message = json;
+          } else {
+            throw "Invalid JSON";
+          }
+        } catch(err) {
+          console.error('[MODULE]', '[VARIABLE]', '[SET]', 'Request Invalid JSON');
+        }
+
+        new Promise((resolve, reject) => {
+          setCb(message, resolve, reject);
+        }).then((response) => {
+          try {
+            if(response.constructor == [].constructor || response.constructor == {}.constructor) {
+              response = JSON.stringify(response);
+            }
+          } catch(err) {
+            console.error('[MODULE]', '[VARIABLE]', '[SET]', 'Response Invalid JSON');
+          }
+
+          console.error('[MODULE]', '[VARIABLE]', '[SET]', 'Service Resolved');
+
+          this.client.publish(publish, '' + response);
+        }).catch((err) => {
+          console.error('[MODULE]', '[VARIABLE]', '[SET]', 'Service Error', err);
+        });
+      }
+    });
+  }
 }
 
 module.exports = {
