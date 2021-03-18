@@ -1,6 +1,8 @@
 const mqtt = require('mqtt');
 const UrlPattern = require('url-pattern');
 const EventEmitter = require('events');
+const MqttServices = require('./lib/MqttServices.js');
+const Config = require('h8-config');
 
 class MyEmitter extends EventEmitter {}
 
@@ -9,7 +11,8 @@ class ModuleOptions {
     this.options = {
       hardwareType: null,
       serialNumber: null,
-      prefix: null
+      prefix: null,
+      mqttHost: 'mqtt://localhost'
     };
   }
 
@@ -44,8 +47,11 @@ class Module {
     this.hardwareType = options.get('hardwareType');
     this.serialNumber = options.get('serialNumber');
     this.statusCallback = (status) => { return status; };
+    this.mqttHost = options.get('mqttHost');
 
     this.eventBus = new MyEmitter();
+
+    this.Config = Config;
   }
 
   start() {
@@ -72,7 +78,7 @@ class Module {
       }, 500);
 
 
-      var client = mqtt.connect('mqtt://localhost');
+      var client = mqtt.connect(this.mqttHost);
 
       client.on('connect', () => {
         console.log('MQTT Local', 'Connected');
@@ -95,11 +101,11 @@ class Module {
 
         if(pattern1.match(topic)) {
           var params = pattern1.match(topic);
-          
+
           var suffix = 'response' + (params.id !== undefined ? '/' + params.id : '');
-          
+
           parent.publishState(suffix);
-          
+
 //           var status = parent.statusCallback({
 //             uptime: (parent.startedAt !== null ? (new Date().getTime() - parent.startedAt) : null)
 //           });
@@ -117,6 +123,12 @@ class Module {
       });
 
       parent.client = client;
+
+      parent.MqttServices = new MqttServices(client, {
+        prefix: this.prefix,
+        hardwareType: this.hardwareType,
+        serialNumber: this.serialNumber
+      });
     });
   }
 
@@ -127,7 +139,7 @@ class Module {
   onStatus(callback) {
     this.statusCallback = callback;
   }
-  
+
   onState(callback) {
     this.statusCallback = callback;
   }
@@ -164,25 +176,25 @@ class Module {
 
     this.client.publish(topic, message);
   }
-  
+
   publishState(suffix) {
     var status = this.statusCallback({
       uptime: (this.startedAt !== null ? (new Date().getTime() - this.startedAt) : null)
     });
 
     var pubTopic = 'state';
-    
+
     if(suffix !== undefined) {
       pubTopic += '/' + suffix
     }
-    
+
     pubTopic = this.constructTopic(pubTopic);
 
     console.log('MQTT Local', 'Publishing Status');
 
     this.client.publish(pubTopic, JSON.stringify(status));
   }
-  
+
     variable(name, getCb, setCb) {
     console.log('[MODULE]', '[VARIABLE]', 'Setup', name);
 
