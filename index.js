@@ -132,6 +132,22 @@ class Module {
     });
   }
 
+  static mqtt() {
+    return new Promise((resolve, reject) => {
+      console.log('[DeviceModule]', 'Setting up MQTT client');
+
+      var client  = mqtt.connect('mqtt://localhost', {
+        port: 1883
+      });
+
+      client.on('connect', function () {
+        console.log('[DeviceModule]', 'MQTT client connected');
+
+        resolve(client);
+      });
+    });
+  }
+
   constructTopic(suffix) {
     return this.hardwareType + '/' + this.serialNumber + '/' + this.prefix + '/' + suffix;
   }
