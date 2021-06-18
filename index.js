@@ -105,6 +105,7 @@ class Module {
           var suffix = 'response' + (params.id !== undefined ? '/' + params.id : '');
 
           parent.publishState(suffix);
+          parent.publishState();
 
 //           var status = parent.statusCallback({
 //             uptime: (parent.startedAt !== null ? (new Date().getTime() - parent.startedAt) : null)
