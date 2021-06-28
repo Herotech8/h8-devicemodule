@@ -62,6 +62,8 @@ class Module {
 
       var startedAtCounter = 0, startedAtOffset = 0;
 
+      var uptime = 0;
+
       var startedAtInterval = setInterval(() => {
         startedAtCounter += 1;
         startedAtOffset += 500;
@@ -77,6 +79,8 @@ class Module {
         }
       }, 500);
 
+      setInterval(() => { uptime += 1; }, 1000);
+
 
       var client = mqtt.connect(this.mqttHost);
 
@@ -88,6 +92,7 @@ class Module {
         }));
 
         client.subscribe(parent.constructTopic('#'));
+        client.subscribe(parent.hardwareType + '/' + parent.serialNumber + '/developer/microservice/identify');
 
         console.log('MQTT Local', 'Subscribed To', parent.constructTopic('#'));
 
@@ -96,6 +101,14 @@ class Module {
 
       client.on('message', (topic, message) => {
         //console.log('MQTT Local', 'Received', topic, message.toString());
+
+        if(topic == parent.hardwareType + '/' + parent.serialNumber + '/developer/microservice/identify') {
+          client.publish(parent.hardwareType + '/' + parent.serialNumber + '/developer/microservice/register', JSON.stringify({
+            ts: new Date().getTime(),
+            uptime: uptime,
+            name: parent.prefix
+          }));
+        }
 
         var pattern1 = new UrlPattern(parent.constructTopic('state/request(/:id)'));
 
